@@ -2,6 +2,8 @@ import java.sql.*;
 import java.util.*;
 import java.time.*;
 import java.text.SimpleDateFormat;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class app extends sqlitehandler{
 
@@ -39,18 +41,29 @@ public class app extends sqlitehandler{
 
 
     public static void addBook(Connection admConnection){
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Enter book id: ");
-        int bookid = sc.nextInt();
-        System.out.println("Enter book name: ");
-        String bookname = sc.next();
-        System.out.println("Enter author name: ");
-        String authorname = sc.next();
+    Scanner sc = new Scanner(System.in);
+    System.out.println("Enter book id: ");
+    int bookid = sc.nextInt();
+    sc.nextLine(); // Consume the newline character left behind by nextInt()
 
-        String sql2 = "insert into bookTable values(" + bookid + ", '"+ bookname +"', '"+ authorname +"');";
-        runStatement(admConnection, sql2);
-    sc.close();    
+    System.out.println("Enter book name: ");
+    String bookname = sc.nextLine();
+
+    System.out.println("Enter author name: ");
+    String authorname = sc.nextLine();
+
+    String sql2 = "insert into bookTable values(" + bookid + ", '"+ bookname +"', '"+ authorname +"');";
+    runStatement(admConnection, sql2);
+    System.out.println("Press 0 to enter another book details.");
+    System.out.println("Press any numeric key except '0' to exit.");
+    int entry = sc.nextInt();
+    if(entry == 0){
+        addBook(admConnection);
     }
+    else return;
+    sc.close();
+} 
+
 
     public static void bookSearch(Connection admConnection){
         Scanner sc = new Scanner(System.in);
@@ -67,7 +80,7 @@ public class app extends sqlitehandler{
                     System.out.println("Book not found");
                 }
                 else{
-                    String sql5 = "insert into issuefrom values('" + out.getInt("bookid") + "', '"+ out.getString("bookname") +"', '"+ out.getString("authorname") +"');"; 
+                   // String sql5 = "insert into issuefrom values('" + out.getInt("bookid") + "', '"+ out.getString("bookname") +"', '"+ out.getString("authorname") +"');"; 
                     System.out.println("BOOK ID----BOOK NAME----AUTHOR NAME");
                     System.out.println("--------------------------------------");
                     System.out.println(out.getInt("bookid")+ "          " +
@@ -168,6 +181,7 @@ public class app extends sqlitehandler{
                     System.out.println("2. Search books ");
                     System.out.println("3. Issue books ");
                     System.out.println("4. Return books ");
+                    System.out.println("5. Get all books details (excel file) ");
                     System.out.println("Enter your choice...");
                     int choice = sc.nextInt();
                     switch(choice){
@@ -182,7 +196,10 @@ public class app extends sqlitehandler{
                             break;
                         case 4:
                             returnBook(c1);
-                            break;        
+                            break;
+                        case 5:
+                            exportBooksToCSV(c1);
+                            break;       
                         default:
                             System.out.println("INVALID CHOICE!");
                             break;
@@ -272,14 +289,63 @@ public class app extends sqlitehandler{
     }
 }
 
+public static void exportBooksToCSV(Connection admConnection) {
+    String sql = "SELECT * FROM bookTable;"; // SQL query to fetch all books details
+    ResultSet resultSet = null;
+    FileWriter cs = null;
+
+    try {
+        resultSet = runStatement(admConnection, sql);
+        cs = new FileWriter("books.csv"); // CSV file name
+
+        // Writing CSV file headers
+        cs.append("Book ID,Book Name,Author Name");
+        cs.append("\n");
+
+        // Writing books details to CSV file
+        while (resultSet.next()) {
+            int bookId = resultSet.getInt("bookid");
+            String bookName = resultSet.getString("bookname");
+            String authorName = resultSet.getString("authorname");
+
+            cs.append(String.valueOf(bookId));
+            cs.append(",");
+            cs.append(bookName);
+            cs.append(",");
+            cs.append(authorName);
+            cs.append("\n");
+        }
+
+        System.out.println("Books details exported to CSV file successfully!");
+    } catch (SQLException e) {
+        e.printStackTrace();
+        System.out.println("Error occurred in SQL statement: " + e.getMessage());
+    } catch (IOException e) {
+        e.printStackTrace();
+        System.out.println("Error occurred while writing to CSV file: " + e.getMessage());
+    } finally {
+        try {
+            if (resultSet != null) {
+                resultSet.close();
+            }
+            if (cs != null) {
+                cs.flush();
+                cs.close();
+            }
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
     public static void main(String args[]){
         Connection c1 =  create_database("Library_Management");
         // Connection c1 =  create_database("library");
-        String sql = "CREATE TABLE IF NOT EXISTS login ("  
-                    + " username text,"  
-                    + " password text NOT NULL"    
-                    + ");"; 
-        runStatement(c1,sql);
+        // String sql = "CREATE TABLE IF NOT EXISTS login ("  
+        //             + " username text,"  
+        //             + " password text NOT NULL"    
+        //             + ");"; 
+        // runStatement(c1,sql);
 
         String sql3 = "CREATE TABLE IF NOT EXISTS user(" 
                 + " userid int primary key not null," 
@@ -309,6 +375,7 @@ public class app extends sqlitehandler{
         // deleteLibrarianInfo(c1);
         login(c1);
         // issueBook(c1);  
-        // returnBook(c1);             
+        // returnBook(c1);
+        // exportBooksToCSV(c1);             
      }
 }
