@@ -24,6 +24,14 @@ public class app extends sqlitehandler{
         String sql = "insert into user values("+ userid +", '"+ name +"','"+ address +"',"+ phoneno +",'"+ password +"');";
         //System.out.println(sql);
         runStatement(admConnection,sql);
+        System.out.println("User added successfully! do you perform any other task?(Y/N)");
+        char ch=sc.next().charAt(0);
+        if(ch=='y'||ch=='Y'){
+           login(admConnection);
+        }
+        else{
+            System.out.println("Thank you for using our service!");
+        }
     sc.close();    
     }
 
@@ -31,11 +39,20 @@ public class app extends sqlitehandler{
    Scanner sc=new Scanner(System.in);
    System.out.println("Enter the Librarian's User Id whose details you want to delete");
    int delLib=sc.nextInt();
-   sc.close();
+   
 
    //deleting the user whose employee id is given
    String sql="delete from user where userid = +"+ delLib+ "";
    runStatement(admConnection, sql); 
+    System.out.println("Librarian's details deleted successfully! do you perform any other task?(Y/N)");
+    char ch=sc.next().charAt(0);
+    if(ch=='y'||ch=='Y'){
+       login(admConnection);
+    }
+    else{
+        System.out.println("Thank you for using our service!");
+    }
+    sc.close();
 }
 
 
@@ -44,9 +61,9 @@ public class app extends sqlitehandler{
     Scanner sc = new Scanner(System.in);
     System.out.println("Enter book id: ");
     int bookid = sc.nextInt();
-    sc.nextLine(); // Consume the newline character left behind by nextInt()
-
+    
     System.out.println("Enter book name: ");
+    sc.nextLine(); // Consume the newline character left behind by nextInt()
     String bookname = sc.nextLine();
 
     System.out.println("Enter author name: ");
@@ -55,44 +72,66 @@ public class app extends sqlitehandler{
     String sql2 = "insert into bookTable values(" + bookid + ", '"+ bookname +"', '"+ authorname +"');";
     runStatement(admConnection, sql2);
     System.out.println("Press 0 to enter another book details.");
+    System.out.println("Press 1 to access more functions.");
     System.out.println("Press any numeric key except '0' to exit.");
     int entry = sc.nextInt();
     if(entry == 0){
         addBook(admConnection);
     }
-    else return;
+    else if(entry==1) {
+        userlogin(admConnection);
+    }
+    else{
+        System.out.println("Thank you for using our service!");
+        return;
+    }
     sc.close();
 } 
 
 
-    public static void bookSearch(Connection admConnection){
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Enter book name: "); //bookid is primary key
-        String bname = sc.next();
-        sc.close();
-        String sql1 = "select * from bookTable where bookname = +'"+ bname +"'";
-        ResultSet out = runStatement(admConnection, sql1);
-        // if((bname.equals(out))){
-        //     System.out.println("Book not found");
-        // }else{
-            try{
-                if(!(out.next())){
-                    System.out.println("Book not found");
-                }
-                else{
-                   // String sql5 = "insert into issuefrom values('" + out.getInt("bookid") + "', '"+ out.getString("bookname") +"', '"+ out.getString("authorname") +"');"; 
-                    System.out.println("BOOK ID----BOOK NAME----AUTHOR NAME");
-                    System.out.println("--------------------------------------");
-                    System.out.println(out.getInt("bookid")+ "          " +
-                                       out.getString("bookname")+ "           " +
-                                       out.getString("authorname"));
-                }
+public static void bookSearch(Connection admConnection){
+    Scanner sc = new Scanner(System.in);
+    System.out.println("Enter book name: "); //bookid is primary key
+    String bname = sc.next();
+    // sc.close(); // remove this line
+    String sql1 = "select * from bookTable where bookname = +'"+ bname +"'";
+    ResultSet out = runStatement(admConnection, sql1);
+    // if((bname.equals(out))){
+    //     System.out.println("Book not found");
+    // }else{
+        try{
+            if(!(out.next())){
+                System.out.println("Book not found");
             }
-            catch (SQLException e){
-                e.printStackTrace();
-                System.out.println("Error occured in SQL statement" + e.getMessage());
-            }     
-    }
+            else{
+               // String sql5 = "insert into issuefrom values('" + out.getInt("bookid") + "', '"+ out.getString("bookname") +"', '"+ out.getString("authorname") +"');"; 
+                System.out.println("BOOK ID----BOOK NAME----AUTHOR NAME");
+                System.out.println("--------------------------------------");
+                System.out.println(out.getInt("bookid")+ "          " +
+                                   out.getString("bookname")+ "           " +
+                                   out.getString("authorname"));
+             System.out.println("Press 0 to issue a book.");
+             System.out.println("Press 1 to access more functions.");
+            System.out.println("Press any numeric key except '0' to exit.");
+                int entry = sc.nextInt();
+                    if(entry == 0){
+                        issueBook(admConnection);
+                        }
+                     else if(entry==1) {
+                         userlogin(admConnection);
+                        }
+                    else{
+                        System.out.println("Thank you for using our service!");
+                        return;
+                        }          
+            }
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+            System.out.println("Error occured in SQL statement" + e.getMessage());
+        }   
+        sc.close();
+}
 
     public static void login(Connection c1){
         Scanner sc = new Scanner(System.in);
@@ -110,6 +149,7 @@ public class app extends sqlitehandler{
                 default:
                 System.out.println("INVALID CHOICE!");
             }
+            sc.close();
     }
 
 
@@ -155,6 +195,7 @@ public class app extends sqlitehandler{
             e.printStackTrace();
             System.out.println(e);
         }
+        sc.close();
     }
 
  public static void userlogin(Connection c1){
@@ -213,6 +254,7 @@ public class app extends sqlitehandler{
             e.printStackTrace();
             System.out.println(e);
         }
+        sc.close();
     }
 
 //TODO----------------------------------------------ISSUE AND RETURN---------------------------------------------------------
@@ -245,6 +287,21 @@ public class app extends sqlitehandler{
         // e.printStackTrace();
         System.out.println("Error occurred while executing SQL statement: " + e.getMessage());
     }
+    System.out.println("Press 0 to issue another book.");
+    System.out.println("press 1 to access more functions");
+    System.out.println("Press any numeric key except '0'and '1' to exit.");
+    int entry = sc.nextInt();
+    if(entry == 0){
+        issueBook(c1);
+    }
+    else if(entry == 1){
+        userlogin(c1);
+    }
+    else{
+        System.out.println("Thank you for using our service!");
+        return;
+    }
+    sc.close();
     }
 
     public static void returnBook(Connection c1) {
@@ -274,7 +331,7 @@ public class app extends sqlitehandler{
                 System.out.println("Failed to insert book details into bookTable!");
             }
             //delete book from issued_books
-            String sqlDelete = "delete from issuedbooks where bookid='" + bookId + "'";
+            String sqlDelete = "delete from issuedbooks where bookid=" + bookId + "";
             ResultSet deleteResult = runStatement(c1, sqlDelete);
             if (deleteResult == null) {
                 System.out.println("Book returned successfully!");
@@ -287,6 +344,21 @@ public class app extends sqlitehandler{
     } catch (SQLException e) {
         System.out.println("Error occurred while executing SQL statement: " + e.getMessage());
     }
+    System.out.println("Press 0 to return another book");
+    System.out.println("Press 1 to access more functions");
+    System.out.println("Press any numeric key except '0' to exit.");
+    int entry = sc.nextInt();
+    if(entry == 0){
+        returnBook(c1);
+    }
+    else if(entry == 1){
+        userlogin(c1);
+    }
+    else{
+        System.out.println("Thank you for using our service!");
+        return;
+    }
+    sc.close();
 }
 
 public static void exportBooksToCSV(Connection admConnection) {
@@ -336,10 +408,33 @@ public static void exportBooksToCSV(Connection admConnection) {
             e.printStackTrace();
         }
     }
+    
 }
 
+
+
+// public static void updateAdminPassword(Connection c1, String username) {
+//     Scanner sc = new Scanner(System.in);
+//     System.out.println("Enter new password: ");
+//     String newPassword = sc.next();
+//     String sql = "UPDATE user SET password = ? WHERE username = ?";
+//     try {
+//         PreparedStatement stmt = c1.prepareStatement(sql);
+//         stmt.setString(1, newPassword);
+//         stmt.setString(2, username);
+//         int rowsAffected = stmt.executeUpdate();
+//         if(rowsAffected > 0) {
+//             System.out.println("Password updated successfully!");
+//         } else {
+//             System.out.println("Failed to update password.");
+//         }
+//     } catch (SQLException e) {
+//         e.printStackTrace();
+//         System.out.println(e);
+//     }
+// }
     public static void main(String args[]){
-        Connection c1 =  create_database("Library_Management");
+        Connection c1 =  create_database("Library1Management");
         // Connection c1 =  create_database("library");
         // String sql = "CREATE TABLE IF NOT EXISTS login ("  
         //             + " username text,"  
@@ -349,7 +444,7 @@ public static void exportBooksToCSV(Connection admConnection) {
 
         String sql3 = "CREATE TABLE IF NOT EXISTS user(" 
                 + " userid int primary key not null," 
-                + " name text,"  
+                + " username text,"  
                 + " address text NOT NULL,"
                 + " phoneno text,"
                 + " password text "    
@@ -368,14 +463,16 @@ public static void exportBooksToCSV(Connection admConnection) {
                 +"issueDate text,"
                 +"dueDate text"
                 +");";
-        ResultSet res =  runStatement(c1,sql6);
+        runStatement(c1,sql6);
         // addUser(c1);
         // addBook(c1);
         // bookSearch(c1);
         // deleteLibrarianInfo(c1);
         login(c1);
+        // userlogin(c1);
         // issueBook(c1);  
         // returnBook(c1);
-        // exportBooksToCSV(c1);             
+        // exportBooksToCSV(c1);
+        // updateAdminPassword(c1, sql3);             
      }
 }
