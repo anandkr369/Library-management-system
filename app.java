@@ -174,6 +174,7 @@ public static void bookSearch(Connection admConnection){
                     System.out.println();
                     System.out.println("1. Add User Details");
                     System.out.println("2. Terminate from job ");
+                    System.out.println("3. Change password ");
                     System.out.println("Enter your choice...");
                     int choice = sc.nextInt();
                     switch(choice){
@@ -183,6 +184,9 @@ public static void bookSearch(Connection admConnection){
                         case 2:
                             deleteLibrarianInfo(c1);
                             break;
+                        case 3:
+                            changePassword(c1);
+                            break;    
                         default:
                             System.out.println("INVALID CHOICE!");
                     }
@@ -413,26 +417,51 @@ public static void exportBooksToCSV(Connection admConnection) {
 
 
 
-// public static void updateAdminPassword(Connection c1, String username) {
-//     Scanner sc = new Scanner(System.in);
-//     System.out.println("Enter new password: ");
-//     String newPassword = sc.next();
-//     String sql = "UPDATE user SET password = ? WHERE username = ?";
-//     try {
-//         PreparedStatement stmt = c1.prepareStatement(sql);
-//         stmt.setString(1, newPassword);
-//         stmt.setString(2, username);
-//         int rowsAffected = stmt.executeUpdate();
-//         if(rowsAffected > 0) {
-//             System.out.println("Password updated successfully!");
-//         } else {
-//             System.out.println("Failed to update password.");
-//         }
-//     } catch (SQLException e) {
-//         e.printStackTrace();
-//         System.out.println(e);
-//     }
-// }
+public static void changePassword(Connection c1) {
+    Scanner sc = new Scanner(System.in);
+    System.out.println("Enter username: ");
+    String username = sc.next();
+    System.out.println("Enter current password: ");
+    String currentPassword = sc.next();
+    System.out.println("Enter new password: ");
+    String newPassword = sc.next();
+
+    try {
+        String sql = "SELECT username, password FROM user WHERE username = ? AND password = ?";
+        PreparedStatement ps = c1.prepareStatement(sql);
+        ps.setString(1, username);
+        ps.setString(2, currentPassword);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            String sqlUpdt = "UPDATE user SET password = ? WHERE username = ?";
+            PreparedStatement psUpdate = c1.prepareStatement(sqlUpdt);
+            psUpdate.setString(1, newPassword);
+            psUpdate.setString(2, username);
+            int rowsAffected = psUpdate.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Password changed successfully!");
+                System.out.println("Do you want to proceed forward? Press 1 to continue any other key to exit");
+                int entry = sc.nextInt();
+                if(entry == 1){
+                    userlogin(c1);
+                }
+                else{
+                    System.out.println("Thank you for using our service!");
+                    return;
+                }
+            } else {
+                System.out.println("Failed to change password.");
+            }
+        } else {
+            System.out.println("Incorrect username or current password.");
+        }
+    } catch (SQLException e) {
+        System.out.println("Error occurred while executing SQL statement: " + e.getMessage());
+    }
+}
+
     public static void main(String args[]){
         Connection c1 =  create_database("Library1Management");
         // Connection c1 =  create_database("library");
@@ -473,6 +502,6 @@ public static void exportBooksToCSV(Connection admConnection) {
         // issueBook(c1);  
         // returnBook(c1);
         // exportBooksToCSV(c1);
-        // updateAdminPassword(c1, sql3);             
+        // changePassword(c1);             
      }
 }
